@@ -1,4 +1,4 @@
-#include <iostream>
+x#include <iostream>
 #include <raylib.h>
 #include <cstring>
 
@@ -150,6 +150,11 @@ int main()
             Rectangle dest = { 0, 0, (float)screenWidth, (float)screenHeight };
             Vector2 origin = { 0, 0 }; 
             DrawTexturePro(background, source, dest, origin, 0.0f, WHITE);
+
+
+            // منوی بازی در اینجا نوشته می شود
+
+            
             DrawTextEx( Main_Font , Player_One_Name , (Vector2){ 20 , 20 } , Main_Font.baseSize , spacing , BLACK);
             // DrawTextEx( Main_Font , "Wins: " , (Vector2){ 20 , 50 } , Main_Font.baseSize , spacing , BLACK);
             // DrawTextEx( Main_Font , "Draws: " , (Vector2){ 20 , 80 } , Main_Font.baseSize , spacing , BLACK);
@@ -170,9 +175,15 @@ int main()
             DrawTextEx( Main_Font , "Start" , (Vector2){ 120 , 710} , Main_Font.baseSize , spacing , BLACK);
             DrawRectangleRec ( Reset_Botton , GREEN );
             DrawTextEx( Main_Font , "Reset" , (Vector2){ 1212 , 710} , Main_Font.baseSize , spacing , BLACK);
+
+            
+            //  منطق بازی باید بعد از این خط باید نوشته شود
+
+
             EndDrawing();
         }
     }
+
 
     UnloadTexture(background);
     UnloadFont(Main_Font);
