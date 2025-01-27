@@ -2,6 +2,8 @@
 #include <raylib.h>
 #include <cstring>
 
+const int screenWidth = 1400;
+const int screenHeight = 800;
 const int BOARD_SIZE = 5; // Changed from 6 to 5
 const int CELL_SIZE = 100;
 const int BOARD_OFFSET_X = 450;
@@ -11,6 +13,7 @@ bool Player_Two_Input_Finished = false;
 bool start = false;
 bool Error = false;
 bool Possible_To_Start = false;
+bool Possible_To_Reset = false;
 char Player_One_Name[16] = "";
 char Player_Two_Name[16] = "";
 Rectangle Start_Botton = {50, 700, 200, 50};
@@ -21,6 +24,7 @@ int Player1_W = 0, Player2_W = 0, Player1_D = 0, Player2_D = 0, Player1_L = 0, P
 bool gameOver = false;
 int winner = 0; // 0 for no winner, 1 for Player 1, 2 for Player 2
 float spacing = 1.5f;
+int Menu_X = 100 , Menu_Y = 300; 
 
 char board[BOARD_SIZE][BOARD_SIZE] = {0}; // 0 for empty, 1 for Player 1 (*), 2 for Player 2 (#)
 bool playerOneTurn = true;
@@ -45,6 +49,14 @@ void Display_Board()
             {
                 DrawText("#", BOARD_OFFSET_X + j * CELL_SIZE + 40, BOARD_OFFSET_Y + i * CELL_SIZE + 30, 40, BLACK);
             }
+            // if (board[i][j] == 1)
+            // {
+            //     DrawTextEx(Main_Font, "X", (Vector2){(float) BOARD_OFFSET_X + j * CELL_SIZE + 40, (float) BOARD_OFFSET_Y + i * CELL_SIZE + 30}, Main_Font.baseSize, spacing, BLACK);
+            // }
+            // else if (board[i][j] == 2)
+            // {
+            //     DrawTextEx(Main_Font, "O", (Vector2){(float) BOARD_OFFSET_X + j * CELL_SIZE + 40, (float) BOARD_OFFSET_Y + i * CELL_SIZE + 30}, Main_Font.baseSize, spacing, BLACK);
+            // }
         }
     }
 }
@@ -79,6 +91,22 @@ void Score_Board(int Player1_W, int Player2_W, int Player1_L, int Player2_L, int
     DrawTextEx(Main_Font, TextFormat("%d", Player2_W), (Vector2){(float)player2X, (float)player2Y}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, TextFormat("%d", Player2_L), (Vector2){(float)player2X + 120, (float)player2Y}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, TextFormat("%d", Player2_D), (Vector2){(float)player2X + 240, (float)player2Y}, Main_Font.baseSize , spacing, BLACK);
+}
+
+
+// Display the menu menux = 100   menuy = 300
+void Display_Menu ( Font Main_Font )
+{
+    DrawRectangle ( 100 , 300 , 200 , 50 , LIGHTGRAY );
+    for ( int i = 0 ; i < 4 ; i++ )
+    {
+        DrawLine ( Menu_X , Menu_Y + ( 50 * i ) , Menu_X + 200 , Menu_Y + ( 50 * i ) , BLACK );
+        if ( i < 2 ) DrawLine ( Menu_X + ( 200 * i ) , Menu_Y , Menu_X + ( 200 * i ) , Menu_Y + 150 , BLACK );
+    }
+    DrawTextEx ( Main_Font , "Menu" , (Vector2){ 160 , 310 } , Main_Font.baseSize , spacing , BLACK );
+    DrawTextEx ( Main_Font , "Exit" , (Vector2){ 174 , 410 } , Main_Font.baseSize , spacing , BLACK );
+    DrawTextEx ( Main_Font , "New Game" , (Vector2){ 126 , 360 } , Main_Font.baseSize , spacing , BLACK );
+    
 }
 
 bool CheckWin(int player)
@@ -130,7 +158,7 @@ bool CheckDraw()
     return true;
 }
 
-void ResetGame(bool& start, bool& gameOver, int& winner, bool& playerOneTurn)
+void ResetGame() // bool& start, bool& gameOver, int& winner, bool& playerOneTurn
 {
     // Reset the board
     for (int i = 0; i < BOARD_SIZE; i++)
@@ -146,6 +174,7 @@ void ResetGame(bool& start, bool& gameOver, int& winner, bool& playerOneTurn)
     gameOver = false;
     winner = 0;
     playerOneTurn = true;
+    Possible_To_Reset = false;
     for ( int i = 0 ; i < 16 ; i++ )  Player_One_Name[i] = '\0';
     for ( int i = 0 ; i < 16 ; i++ )  Player_Two_Name[i] = '\0';
     Active_Text_Box = 1;
@@ -155,8 +184,6 @@ void ResetGame(bool& start, bool& gameOver, int& winner, bool& playerOneTurn)
 int main()
 {
     const char* text1 = "Enter players names (Maximum 15 characters)";
-    int screenWidth = 1400;
-    int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "Tic Tac Toe");
     InitAudioDevice(); // Initialize audio device
 
@@ -253,6 +280,7 @@ int main()
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                 {
                     start = true;
+                    Possible_To_Reset = true;
                 }
             }
             BeginDrawing();
@@ -265,7 +293,7 @@ int main()
             DrawTexturePro(menuBackground, source, dest, origin, 0.0f, WHITE);
 
             // Draw the text in green
-            DrawTextEx(Main_Font, text1, (Vector2){(screenWidth - MeasureTextEx(Main_Font, text1, Main_Font.baseSize, spacing).x) / 2, (screenHeight - MeasureTextEx(Main_Font, text1, Main_Font.baseSize, spacing).y) / 2}, Main_Font.baseSize, spacing, GREEN);
+            DrawTextEx(Main_Font, text1, (Vector2){(screenWidth - MeasureTextEx(Main_Font, text1, Main_Font.baseSize, spacing).x) / 2, (screenHeight - MeasureTextEx(Main_Font, text1, Main_Font.baseSize, spacing).y) / 2}, Main_Font.baseSize, spacing, WHITE);
 
             DrawRectangle(500, 450, 400, 50, Active_Text_Box == 1 ? LIGHTGRAY : WHITE);
             DrawRectangleLines(500, 450, 400, 50, Active_Text_Box == 1 ? BLUE : DARKGRAY);
@@ -331,9 +359,9 @@ int main()
             }
 
             // Reset button functionality
-            if (CheckCollisionPointRec(GetMousePosition(), Reset_Botton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            if (CheckCollisionPointRec(GetMousePosition(), Reset_Botton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Possible_To_Reset)
             {
-                ResetGame(start, gameOver, winner, playerOneTurn);
+                ResetGame(); //start, gameOver, winner, playerOneTurn);
             }
 
             BeginDrawing();
@@ -345,10 +373,25 @@ int main()
             Vector2 origin = {0, 0};
             DrawTexturePro(gameBackground, source, dest, origin, 0.0f, WHITE);
 
-            DrawTextEx(Main_Font, Player_One_Name, (Vector2){20, 20}, Main_Font.baseSize, spacing, BLACK);
-            DrawTextEx(Main_Font, Player_Two_Name, (Vector2){1200, 20}, Main_Font.baseSize, spacing, BLACK);
+            DrawTextEx(Main_Font, Player_One_Name, (Vector2){200 - (MeasureTextEx(Main_Font, Player_One_Name, Main_Font.baseSize, spacing).x) / 2, 150}, Main_Font.baseSize, spacing, BLACK);
+            DrawTextEx(Main_Font, Player_Two_Name, (Vector2){1200 - (MeasureTextEx(Main_Font, Player_Two_Name, Main_Font.baseSize, spacing).x) / 2, 150}, Main_Font.baseSize, spacing, BLACK);
             DrawTextEx(Main_Font, "Tic Tac Toe", (Vector2){620, 12}, Main_Font.baseSize, spacing, BLACK);
             Display_Board();
+
+            Display_Menu( Main_Font );
+            // new game ( 100 , 350 , 100 , 50 )
+            // exit ( 100 , 400 , 100 , 450 )
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                if ( CheckCollisionPointRec ( GetMousePosition() , {100 , 350 , 200 , 50} ) && Possible_To_Reset )
+                {
+                    ResetGame();
+                }
+                else if ( CheckCollisionPointRec ( GetMousePosition() , {100, 400, 200, 50} ) )
+                {
+                    return 0;
+                }
+            }
 
             // Draw the score table
             Score_Board(Player1_W, Player2_W, Player1_L, Player2_L, Player1_D, Player2_D , Main_Font);
@@ -358,8 +401,7 @@ int main()
             {
                 if (winner == 0)
                 {
-                    char Draw_Text[6] = "Draw!";
-                    DrawTextEx(Main_Font, "Draw!", (Vector2){(screenWidth - MeasureTextEx(Main_Font, Draw_Text, Main_Font.baseSize, spacing).x) / 2, 560}, 50, spacing, BLACK);
+                    DrawTextEx(Main_Font, "Draw!", (Vector2){(screenWidth - MeasureTextEx(Main_Font, "Draw!", Main_Font.baseSize, spacing).x) / 2, 560}, Main_Font.baseSize, spacing, BLACK);
                 }
                 else
                 {
@@ -367,7 +409,41 @@ int main()
                     strcpy(Win_Message, winner == 1 ? Player_One_Name : Player_Two_Name); 
                     strcat(Win_Message, " Won!"); 
                     DrawTextEx(Main_Font, Win_Message, (Vector2){(screenWidth - MeasureTextEx(Main_Font, Win_Message, Main_Font.baseSize, spacing).x) / 2, 560}, Main_Font.baseSize, spacing, BLACK);
+                    playerOneTurn ? playerOneTurn = true : playerOneTurn = false;
                 }
+                // Display message to continue
+                DrawTextEx( Main_Font , "Would you like to continue?" , (Vector2){980 , 260} , Main_Font.baseSize , spacing , BLACK );
+                // DrawRectangle (1050 , 310 , MeasureTextEx(Main_Font , "YES" , Main_Font.baseSize , spacing).x , 30 , WHITE);
+                DrawTextEx(Main_Font , "YES" , (Vector2){1050 , 310}, Main_Font.baseSize, spacing, BLACK);
+                // DrawRectangle (1240 , 310 , MeasureTextEx(Main_Font , "NO" , Main_Font.baseSize , spacing).x , 30 , WHITE);
+                DrawTextEx(Main_Font , "NO" , (Vector2){1240 , 310}, Main_Font.baseSize, spacing, BLACK);
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                {
+                    if ( CheckCollisionPointRec ( GetMousePosition() , {1050 , 310 , MeasureTextEx(Main_Font , "YES" , Main_Font.baseSize , spacing).x , 30 } ) )
+                    {
+                        for (int i = 0; i < BOARD_SIZE; i++)
+                        {
+                            for (int j = 0; j < BOARD_SIZE; j++)
+                            {
+                                board[i][j] = 0;
+                            }
+                        }
+                        gameOver = false;
+                    }
+                    else if ( CheckCollisionPointRec ( GetMousePosition() , {1240 , 310 , MeasureTextEx(Main_Font , "NO" , Main_Font.baseSize , spacing).x , 30} ) )
+                    {
+                        return 0;
+                    }
+                }
+
+            }
+            else
+            {
+            // Display turn
+            char Turn_Message[20]; 
+            strcpy ( Turn_Message , playerOneTurn ? Player_One_Name : Player_Two_Name ); 
+            strcat ( Turn_Message , "'s turn"); 
+            DrawTextEx (Main_Font , Turn_Message , (Vector2){( screenWidth - MeasureTextEx ( Main_Font , Turn_Message , Main_Font.baseSize , spacing ).x ) / 2, 560} , Main_Font.baseSize , spacing , BLACK );
             }
 
             DrawRectangleRec(Start_Botton, Possible_To_Start ? GREEN : LIGHTGRAY);
