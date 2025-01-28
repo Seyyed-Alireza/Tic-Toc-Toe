@@ -14,6 +14,13 @@ bool start = false;
 bool Error = false;
 bool Possible_To_Start = false;
 bool Possible_To_Reset = false;
+bool End_Game = false;
+bool Mouse_On_Start_Botton = false;
+bool Mouse_On_Reset_Botton = false;
+bool First_Time = true;
+bool Mouse_On_Yes = false;
+bool Mouse_On_No = false;
+bool Is_Asking_To_Continue = false;
 char Player_One_Name[16] = "";
 char Player_Two_Name[16] = "";
 Rectangle Start_Botton = {50, 700, 200, 50};
@@ -61,33 +68,35 @@ void Display_Board()
     }
 }
 
-void Score_Board(int Player1_W, int Player2_W, int Player1_L, int Player2_L, int Player1_D, int Player2_D , Font Main_Font)
+void Score_Board( Font Main_Font )
 {
     // Draw the score table
     int tableWidth = 400; // Increased width to fit all columns
     int tableHeight = 150;
     int tableX = 500;
-    int tableY = 600;
-    DrawRectangle(tableX, tableY, tableWidth, tableHeight, LIGHTGRAY);
-    DrawRectangleLines(tableX, tableY, tableWidth, tableHeight, BLACK);
+    int tableY = End_Game ? 300 : 600 ;
+    DrawRectangle(tableX , tableY, tableWidth, tableHeight, LIGHTGRAY);
+    DrawRectangleLines(tableX , tableY, tableWidth, tableHeight, BLACK);
 
     // Draw headers
+    int player2X = tableX + 20;
+    int player2Y = tableY + 100;
+    int player1X = tableX + 20;
+    int player1Y = tableY + 60;
     int headerX = tableX + 20; // Starting X position for headers
     int headerY = tableY + 10; // Starting Y position for headers
+    DrawTextEx(Main_Font, Player_One_Name, (Vector2){(float)(tableX - (MeasureTextEx(Main_Font, Player_One_Name, Main_Font.baseSize, spacing).x) - 10 ), (float)player1Y}, Main_Font.baseSize , spacing, BLACK);
+    DrawTextEx(Main_Font, Player_Two_Name, (Vector2){(float)(tableX - (MeasureTextEx(Main_Font, Player_Two_Name, Main_Font.baseSize, spacing).x) - 10 ), (float)player2Y}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, "Wins", (Vector2){(float)headerX, (float)headerY}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, "Loses", (Vector2){(float)headerX + 120, (float)headerY}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, "Draws", (Vector2){(float)headerX + 240, (float)headerY}, Main_Font.baseSize , spacing, BLACK);
 
-    // Draw Player 1 scores
-    int player1X = tableX + 20;
-    int player1Y = tableY + 40;
+    // Draw player 1 scores
     DrawTextEx(Main_Font, TextFormat("%d", Player1_W), (Vector2){(float)player1X, (float)player1Y}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, TextFormat("%d", Player1_L), (Vector2){(float)player1X + 120, (float)player1Y}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, TextFormat("%d", Player1_D), (Vector2){(float)player1X + 240, (float)player1Y}, Main_Font.baseSize , spacing, BLACK);
-
-    // Draw Player 2 scores
-    int player2X = tableX + 20;
-    int player2Y = tableY + 70;
+    
+    // Draw playaer 2 scores
     DrawTextEx(Main_Font, TextFormat("%d", Player2_W), (Vector2){(float)player2X, (float)player2Y}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, TextFormat("%d", Player2_L), (Vector2){(float)player2X + 120, (float)player2Y}, Main_Font.baseSize , spacing, BLACK);
     DrawTextEx(Main_Font, TextFormat("%d", Player2_D), (Vector2){(float)player2X + 240, (float)player2Y}, Main_Font.baseSize , spacing, BLACK);
@@ -97,7 +106,19 @@ void Score_Board(int Player1_W, int Player2_W, int Player1_L, int Player2_L, int
 // Display the menu menux = 100   menuy = 300
 void Display_Menu ( Font Main_Font )
 {
-    DrawRectangle ( 100 , 300 , 200 , 50 , LIGHTGRAY );
+    Rectangle New_Game_Botton = {100 , 350 , 200 , 50};
+    bool Mouse_On_New_Game_Botton = false;
+    if (CheckCollisionPointRec(GetMousePosition(), New_Game_Botton ) ) 
+    Mouse_On_New_Game_Botton = true;
+    else Mouse_On_New_Game_Botton = false;
+    DrawRectangleRec ( New_Game_Botton , Mouse_On_New_Game_Botton ? GREEN : WHITE );
+
+    Rectangle Exit_Botton = {100 , 400 , 200 , 50};
+    bool Mouse_On_Exit_Botton = false;
+    if (CheckCollisionPointRec(GetMousePosition(), Exit_Botton ) ) 
+    Mouse_On_Exit_Botton = true;
+    else Mouse_On_New_Game_Botton = false;
+    DrawRectangleRec ( Exit_Botton , Mouse_On_Exit_Botton ? GREEN : WHITE );
     for ( int i = 0 ; i < 4 ; i++ )
     {
         DrawLine ( Menu_X , Menu_Y + ( 50 * i ) , Menu_X + 200 , Menu_Y + ( 50 * i ) , BLACK );
@@ -203,12 +224,10 @@ int main()
 
     PlayMusicStream(backgroundMusic);
     SetMusicVolume(backgroundMusic, 0.9f); // Set volume (0.0 to 1.0)
-
     while (!WindowShouldClose())
     {
         // Update music stream
         UpdateMusicStream(backgroundMusic);
-
         if (!start)
         {
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
@@ -271,6 +290,18 @@ int main()
                     Player_Two_Input_Finished = true;
                 }
             }
+            if (CheckCollisionPointRec(GetMousePosition(), Reset_Botton) )
+            {
+                Mouse_On_Reset_Botton = true;
+                if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Possible_To_Reset)
+                    ResetGame(); //start, gameOver, winner, playerOneTurn);
+            }
+            else Mouse_On_Reset_Botton = false;
+            // Reset button functionality
+            if (CheckCollisionPointRec(GetMousePosition(), Start_Botton) )
+            Mouse_On_Start_Botton = true;
+            else Mouse_On_Start_Botton = false;
+
             if (strcmp(Player_One_Name, Player_Two_Name) == 0 && strlen(Player_One_Name) > 0) Error = true;
             else Error = false;
             if (strlen(Player_One_Name) > 0 && strlen(Player_Two_Name) > 0 && !Error) Possible_To_Start = true;
@@ -294,17 +325,16 @@ int main()
 
             // Draw the text in green
             DrawTextEx(Main_Font, text1, (Vector2){(screenWidth - MeasureTextEx(Main_Font, text1, Main_Font.baseSize, spacing).x) / 2, (screenHeight - MeasureTextEx(Main_Font, text1, Main_Font.baseSize, spacing).y) / 2}, Main_Font.baseSize, spacing, WHITE);
-
             DrawRectangle(500, 450, 400, 50, Active_Text_Box == 1 ? LIGHTGRAY : WHITE);
             DrawRectangleLines(500, 450, 400, 50, Active_Text_Box == 1 ? BLUE : DARKGRAY);
             DrawTextEx(Main_Font, Player_One_Name, (Vector2){510, 465}, Main_Font.baseSize, spacing, BLACK);
             DrawRectangle(500, 520, 400, 50, Active_Text_Box == 2 ? LIGHTGRAY : WHITE);
             DrawRectangleLines(500, 520, 400, 50, Active_Text_Box == 2 ? BLUE : DARKGRAY);
             DrawTextEx(Main_Font, Player_Two_Name, (Vector2){510, 535}, Main_Font.baseSize, spacing, BLACK);
-            DrawRectangleRec(Start_Botton, Possible_To_Start ? GREEN : LIGHTGRAY);
-            DrawTextEx(Main_Font, "Start", (Vector2){120, 710}, Main_Font.baseSize, spacing, BLACK);
-            DrawRectangleRec(Reset_Botton, GREEN);
-            DrawTextEx(Main_Font, "Reset", (Vector2){1212, 710}, Main_Font.baseSize, spacing, BLACK);
+            DrawRectangleRec(Start_Botton, Mouse_On_Start_Botton ? GREEN : WHITE);
+            DrawTextEx(Main_Font, "Start" , (Vector2){120, 710}, Main_Font.baseSize, spacing, Possible_To_Start ? BLACK : LIGHTGRAY );
+            DrawRectangleRec(Reset_Botton, Mouse_On_Reset_Botton ? GREEN : WHITE);
+            DrawTextEx(Main_Font, "Reset", (Vector2){1212, 710}, Main_Font.baseSize, spacing, Possible_To_Reset ? BLACK : LIGHTGRAY );
             if (Error)
             {
                 DrawTextEx(Main_Font, "Names can't be same", (Vector2){550, 585}, Main_Font.baseSize, spacing, WHITE);
@@ -315,7 +345,7 @@ int main()
         {
             if (!gameOver)
             {
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !End_Game)
                 {
                     Vector2 mousePos = GetMousePosition();
                     int row = (mousePos.y - BOARD_OFFSET_Y) / CELL_SIZE;
@@ -359,10 +389,17 @@ int main()
             }
 
             // Reset button functionality
-            if (CheckCollisionPointRec(GetMousePosition(), Reset_Botton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Possible_To_Reset)
+            if (CheckCollisionPointRec(GetMousePosition(), Reset_Botton) )
             {
-                ResetGame(); //start, gameOver, winner, playerOneTurn);
+                Mouse_On_Reset_Botton = true;
+                if( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Possible_To_Reset && !gameOver )
+                    ResetGame(); //start, gameOver, winner, playerOneTurn);
             }
+            else Mouse_On_Reset_Botton = false;
+            // Start button functionality
+            if (CheckCollisionPointRec(GetMousePosition(), Start_Botton) )
+            Mouse_On_Start_Botton = true;
+            else Mouse_On_Start_Botton = false;
 
             BeginDrawing();
             ClearBackground(RAYWHITE);
@@ -376,15 +413,16 @@ int main()
             DrawTextEx(Main_Font, Player_One_Name, (Vector2){200 - (MeasureTextEx(Main_Font, Player_One_Name, Main_Font.baseSize, spacing).x) / 2, 150}, Main_Font.baseSize, spacing, BLACK);
             DrawTextEx(Main_Font, Player_Two_Name, (Vector2){1200 - (MeasureTextEx(Main_Font, Player_Two_Name, Main_Font.baseSize, spacing).x) / 2, 150}, Main_Font.baseSize, spacing, BLACK);
             DrawTextEx(Main_Font, "Tic Tac Toe", (Vector2){620, 12}, Main_Font.baseSize, spacing, BLACK);
-            Display_Board();
+            if ( !End_Game ) Display_Board();
 
             Display_Menu( Main_Font );
             // new game ( 100 , 350 , 100 , 50 )
             // exit ( 100 , 400 , 100 , 450 )
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            if ( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) )
             {
                 if ( CheckCollisionPointRec ( GetMousePosition() , {100 , 350 , 200 , 50} ) && Possible_To_Reset )
                 {
+                    First_Time = true;
                     ResetGame();
                 }
                 else if ( CheckCollisionPointRec ( GetMousePosition() , {100, 400, 200, 50} ) )
@@ -394,16 +432,16 @@ int main()
             }
 
             // Draw the score table
-            Score_Board(Player1_W, Player2_W, Player1_L, Player2_L, Player1_D, Player2_D , Main_Font);
+            Score_Board( Main_Font );
 
             // Draw Win/Draw text on the left side of the game field
             if (gameOver)
             {
-                if (winner == 0)
+                if (winner == 0 && !End_Game)
                 {
                     DrawTextEx(Main_Font, "Draw!", (Vector2){(screenWidth - MeasureTextEx(Main_Font, "Draw!", Main_Font.baseSize, spacing).x) / 2, 560}, Main_Font.baseSize, spacing, BLACK);
                 }
-                else
+                else if ( !End_Game )
                 {
                     char Win_Message[20]; 
                     strcpy(Win_Message, winner == 1 ? Player_One_Name : Player_Two_Name); 
@@ -417,10 +455,12 @@ int main()
                 DrawTextEx(Main_Font , "YES" , (Vector2){1050 , 310}, Main_Font.baseSize, spacing, BLACK);
                 // DrawRectangle (1240 , 310 , MeasureTextEx(Main_Font , "NO" , Main_Font.baseSize , spacing).x , 30 , WHITE);
                 DrawTextEx(Main_Font , "NO" , (Vector2){1240 , 310}, Main_Font.baseSize, spacing, BLACK);
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                if (CheckCollisionPointRec ( GetMousePosition() , {1050 , 310 , MeasureTextEx(Main_Font , "YES" , Main_Font.baseSize , spacing).x , 30 } ) && !End_Game )
                 {
-                    if ( CheckCollisionPointRec ( GetMousePosition() , {1050 , 310 , MeasureTextEx(Main_Font , "YES" , Main_Font.baseSize , spacing).x , 30 } ) )
+                    Mouse_On_Yes = true;
+                    if ( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) )
                     {
+                        First_Time = false;
                         for (int i = 0; i < BOARD_SIZE; i++)
                         {
                             for (int j = 0; j < BOARD_SIZE; j++)
@@ -430,11 +470,16 @@ int main()
                         }
                         gameOver = false;
                     }
-                    else if ( CheckCollisionPointRec ( GetMousePosition() , {1240 , 310 , MeasureTextEx(Main_Font , "NO" , Main_Font.baseSize , spacing).x , 30} ) )
-                    {
-                        return 0;
-                    }
                 }
+                else Mouse_On_Yes = false;
+                if ( CheckCollisionPointRec ( GetMousePosition() , {1240 , 310 , MeasureTextEx(Main_Font , "NO" , Main_Font.baseSize , spacing).x , 30} )  && !End_Game)
+                {
+                    Mouse_On_No = true;
+                    if ( IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ) End_Game = true;
+                }
+                else Mouse_On_No = false;
+                if ( Mouse_On_Yes ) DrawLine ( 1050 , 340 , 1050 + MeasureTextEx(Main_Font , "YES" , Main_Font.baseSize , spacing).x , 340 , BLACK );
+                if ( Mouse_On_No ) DrawLine ( 1240 , 340 , 1240 + MeasureTextEx(Main_Font , "NO" , Main_Font.baseSize , spacing).x , 340 , BLACK );
 
             }
             else
@@ -445,11 +490,12 @@ int main()
             strcat ( Turn_Message , "'s turn"); 
             DrawTextEx (Main_Font , Turn_Message , (Vector2){( screenWidth - MeasureTextEx ( Main_Font , Turn_Message , Main_Font.baseSize , spacing ).x ) / 2, 560} , Main_Font.baseSize , spacing , BLACK );
             }
-
-            DrawRectangleRec(Start_Botton, Possible_To_Start ? GREEN : LIGHTGRAY);
-            DrawTextEx(Main_Font, "Start", (Vector2){120, 710}, Main_Font.baseSize, spacing, BLACK);
-            DrawRectangleRec(Reset_Botton, GREEN);
-            DrawTextEx(Main_Font, "Reset", (Vector2){1212, 710}, Main_Font.baseSize, spacing, BLACK);
+            
+            // Strat and Reset buttons
+            DrawRectangleRec(Start_Botton, Mouse_On_Start_Botton ? GREEN : WHITE );
+            DrawTextEx(Main_Font, First_Time ? "Start" : "Again" , (Vector2){120, 710}, Main_Font.baseSize, spacing, ( Possible_To_Start && !gameOver ) ? BLACK : LIGHTGRAY);
+            DrawRectangleRec(Reset_Botton, Mouse_On_Reset_Botton ? GREEN : WHITE );
+            DrawTextEx(Main_Font, "Reset", (Vector2){1212, 710}, Main_Font.baseSize, spacing, ( Possible_To_Reset && !gameOver ) ? BLACK : LIGHTGRAY);
             EndDrawing();
         }
     }
